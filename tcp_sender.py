@@ -2,7 +2,7 @@ import cv2
 import socket
 import struct
 import numpy as np
-import base64
+import time
 import os
 
 from PIL import ImageGrab
@@ -16,7 +16,7 @@ def get_screen():
     screen = np.array(screenshot)
     # frame = screen[2160:, 1927:, ::-1]
     frame = screen[:, :1920, ::-1]
-    print("ATENÇÃO: esse valor deve ser de 1920x1080 -> valor real: ", frame.shape)
+    print(f"[{time.time()}] ATENÇÃO: esse valor deve ser de 1920x1080 -> valor real: ", frame.shape)
     return frame
 
 ### Video ###
@@ -45,10 +45,10 @@ obstacles_signature, radar_img = radarext.radar_from_tpn_recording(frame)
 ###
 
 ### Network ###
-packet_size = 32768
+packet_size = 1024
 
-client_port = 8080
-client_ip = "10.1.1.140"
+client_port = 9200
+client_ip = "10.1.1.125"
 
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server_socket.connect((client_ip, client_port))
@@ -62,9 +62,7 @@ while(True):
         success, frame = video.read()
         video.set(cv2.CAP_PROP_POS_FRAMES, video.get(cv2.CAP_PROP_POS_FRAMES) + fps*1)
     else:
-        screenshot = ImageGrab.grab()
-        screen = np.array(screenshot)
-        frame = screen[:, :, ::-1]
+        frame = get_screen()
 
     if not success:
         print("failed to fetch new frame")
@@ -96,3 +94,5 @@ while(True):
         
         server_socket.close()
         break
+
+    time.sleep(1)
